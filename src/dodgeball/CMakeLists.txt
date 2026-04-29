@@ -15,7 +15,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 )
 
 ament_export_dependencies(rosidl_default_runtime)
-ament_python_install_package(${PROJECT_NAME})
 
 add_executable(dodgeball_fsm src/Dodgeball_FSM.cpp)
 ament_target_dependencies(dodgeball_fsm
@@ -30,10 +29,11 @@ target_include_directories(dodgeball_fsm PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-rosidl_target_interfaces(dodgeball_fsm
+rosidl_get_typesupport_target(cpp_typesupport_target
   ${PROJECT_NAME}
   "rosidl_typesupport_cpp"
 )
+target_link_libraries(dodgeball_fsm ${cpp_typesupport_target})
 
 install(TARGETS dodgeball_fsm
   DESTINATION lib/${PROJECT_NAME}
