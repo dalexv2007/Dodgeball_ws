@@ -161,7 +161,7 @@ private:
                     current_state_ = State::SEARCH; //if ball lost, go back to search
                     RCLCPP_INFO(this->get_logger(), "NAV_TO_INTER -> SEARCH");
                 }
-                else if(vec.distance < 0.5) //if close to intermediate point, switch to nav to kick pos
+                else if(vec.distance < 0.8) //if close to intermediate point, switch to nav to kick pos
                     current_state_ = State::NAV_TO_KICK_POS;
                     RCLCPP_INFO(this->get_logger(), "NAV_TO_INTER -> NAV_TO_KICK_POS");
                 break;            
