@@ -14,21 +14,21 @@ public:
         theta_pid_ (params_.theta_kp, params_.theta_ki, params_.theta_kd, params_.theta_limit) 
         {
 
-        cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10); //publisher for velocity
+        cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10); //publisher for velocity
 
-    odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-        "/odom",
-        rclcpp::SensorDataQoS(),
-        [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
-            this->x_ = msg->pose.pose.position.x;
-            this->y_ = msg->pose.pose.position.y;
-            double siny_cosp = 2.0 * (msg->pose.pose.orientation.w * msg->pose.pose.orientation.z + 
-                                        msg->pose.pose.orientation.x * msg->pose.pose.orientation.y);
-            double cosy_cosp = 1.0 - 2.0 * (msg->pose.pose.orientation.y * msg->pose.pose.orientation.y + 
-                                            msg->pose.pose.orientation.z * msg->pose.pose.orientation.z);
-            this->theta_ = std::atan2(siny_cosp, cosy_cosp);
-            RCLCPP_INFO(this->get_logger(), "odom: x=%.2f y=%.2f theta=%.2f", x_, y_, theta_);
-        });
+        odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/odom",
+            rclcpp::SensorDataQoS(),
+            [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
+                this->x_ = msg->pose.pose.position.x;
+                this->y_ = msg->pose.pose.position.y;
+                double siny_cosp = 2.0 * (msg->pose.pose.orientation.w * msg->pose.pose.orientation.z + 
+                                            msg->pose.pose.orientation.x * msg->pose.pose.orientation.y);
+                double cosy_cosp = 1.0 - 2.0 * (msg->pose.pose.orientation.y * msg->pose.pose.orientation.y + 
+                                                msg->pose.pose.orientation.z * msg->pose.pose.orientation.z);
+                this->theta_ = std::atan2(siny_cosp, cosy_cosp);
+                RCLCPP_INFO(this->get_logger(), "odom: x=%.2f y=%.2f theta=%.2f", x_, y_, theta_);
+            });
 
         ball_sub_ = this->create_subscription<dodgeball::msg::BallLocation>( //subscriber to ball location topic ball_finder
             "/ball_location", 10,
