@@ -27,6 +27,7 @@ public:
             double cosy_cosp = 1.0 - 2.0 * (msg->pose.pose.orientation.y * msg->pose.pose.orientation.y + 
                                             msg->pose.pose.orientation.z * msg->pose.pose.orientation.z);
             this->theta_ = std::atan2(siny_cosp, cosy_cosp);
+            RCLCPP_INFO(this->get_logger(), "odom: x=%.2f y=%.2f theta=%.2f", x_, y_, theta_);
         });
 
         ball_sub_ = this->create_subscription<dodgeball::msg::BallLocation>( //subscriber to ball location topic ball_finder
