@@ -18,7 +18,7 @@ public:
 
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>( //subscriber to odometry topic
             "odom", 10,
-            rclcpp::SensorDatQoS(),
+            rclcpp::SensorDataQoS(),
             [this](const nav_msgs::msg::Odometry::SharedPtr msg) { //lambda callback to update odom data
                 this->x_ = msg->pose.pose.position.x; //update x position
                 this->y_ = msg->pose.pose.position.y; //update y position
