@@ -16,22 +16,21 @@ public:
 
         cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10); //publisher for velocity
 
-        odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>( //subscriber to odometry topic
-            "odom", 10,
-            rclcpp::SensorDataQoS(),
-            [this](const nav_msgs::msg::Odometry::SharedPtr msg) { //lambda callback to update odom data
-                this->x_ = msg->pose.pose.position.x; //update x position
-                this->y_ = msg->pose.pose.position.y; //update y position
-                // Convert quaternion to yaw angle for orientation
-                double siny_cosp = 2.0 * (msg->pose.pose.orientation.w * msg->pose.pose.orientation.z + 
-                                            msg->pose.pose.orientation.x * msg->pose.pose.orientation.y);
-                double cosy_cosp = 1.0 - 2.0 * (msg->pose.pose.orientation.y * msg->pose.pose.orientation.y + 
-                                                msg->pose.pose.orientation.z * msg->pose.pose.orientation.z);
-                this->theta_ = std::atan2(siny_cosp, cosy_cosp); //update theta orientation
-            });
+    odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+        "/odom",
+        rclcpp::SensorDataQoS(),
+        [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
+            this->x_ = msg->pose.pose.position.x;
+            this->y_ = msg->pose.pose.position.y;
+            double siny_cosp = 2.0 * (msg->pose.pose.orientation.w * msg->pose.pose.orientation.z + 
+                                        msg->pose.pose.orientation.x * msg->pose.pose.orientation.y);
+            double cosy_cosp = 1.0 - 2.0 * (msg->pose.pose.orientation.y * msg->pose.pose.orientation.y + 
+                                            msg->pose.pose.orientation.z * msg->pose.pose.orientation.z);
+            this->theta_ = std::atan2(siny_cosp, cosy_cosp);
+        });
 
         ball_sub_ = this->create_subscription<dodgeball::msg::BallLocation>( //subscriber to ball location topic ball_finder
-            "ball_location", 10,
+            "/ball_location", 10,
             [this](const dodgeball::msg::BallLocation::SharedPtr msg) { //
                 this->ball_bearing_ = msg->bearing; //"bearing in this object = bearing in msg"
                 this->ball_distance_ = msg->distance; //same with distance
