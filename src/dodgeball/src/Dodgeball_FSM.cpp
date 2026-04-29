@@ -55,8 +55,8 @@ private:
         double bearing_limit = 1.0;          // max rad/s
         
         // PID gains for distance (linear velocity)
-        double distance_kp = 0.5, distance_ki = 0.0, distance_kd = 0.0;
-        double distance_limit = 0.5;         // max m/s
+        double distance_kp = 0.3, distance_ki = 0.0, distance_kd = 0.0;
+        double distance_limit = 0.3;         // max m/s
 
         //PID gains for theta
         double theta_kp = 0.01, theta_ki = 0.0, theta_kd = 0.0;
@@ -142,7 +142,7 @@ private:
                     current_state_ = State::SEARCH; //if ball lost, go back to search
                     RCLCPP_INFO(this->get_logger(), "APPROACH -> SEARCH");
                 }
-                else if (dist_error < 0.1 && bearing_error < 15.0) { //if within approach distance, switch to kick
+                else if (dist_error < 0.3 && bearing_error < 20.0) { //if within approach distance, switch to kick
                     twist_cmd.linear.x = 0.0; //stop forward movement
                     twist_cmd.angular.z = 0.0; //stop rotation
                     calculate_goals(); //calculate intermediate and kick positions based on current odom
@@ -178,7 +178,7 @@ private:
                     current_state_ = State::SEARCH; //if ball lost, go back to search
                     RCLCPP_INFO(this->get_logger(), "NAV_TO_KICK_POS -> SEARCH");
                 }
-                else if(vec.distance < 0.2){ //if close to kick position, switch to line up
+                else if(vec.distance < 0.5){ //if close to kick position, switch to line up
                     current_state_ = State::LINE_UP;
                     RCLCPP_INFO(this->get_logger(), "NAV_TO_KICK_POS -> LINE_UP");
                 }
