@@ -46,7 +46,7 @@ private:
     struct TunableParams {
         // Movement parameters
         double search_rotation_speed = 0.5;  // rad/s - how fast to spin when searching
-        double approach_distance_goal = 1.0; // meters - distance to stop at
+        double approach_distance_goal = 1.5; // meters - distance to stop at
         double kick_speed = 0.3;             // m/s - forward speed when kicking
         int kick_duration_ms = 3000;         // milliseconds - how long to kick
         
@@ -101,7 +101,7 @@ private:
     double ball_bearing_ = 0.0; // hold targeting data
     double ball_distance_ = 0.0;
     bool ball_found_ = false;
-    double bearing_goal_ = 125;
+    double image_center_x_ = 125.0;
     double dt = 0.1; // Assuming control loop runs every 100ms
     double inter_x_ = 0.0, inter_y_ = 0.0;  // world position of intermediate goal
     double kick_x_  = 0.0, kick_y_  = 0.0;  // world position behind the ball
@@ -120,7 +120,7 @@ private:
     void control_loop() {
         geometry_msgs::msg::Twist twist_cmd; // pub'd twist msg as twist_cmd
         double dist_error = std::abs(params_.approach_distance_goal - ball_distance_); //calculate distance error for PID
-        double bearing_error = std::abs(bearing_goal_ - ball_bearing_); //calculate bearing error for PID
+        double bearing_error = std::abs(image_center_x_ - ball_bearing_); //calculate bearing error for PID
 
         switch (current_state_) { //switch for FSM
             case State::SEARCH: 
@@ -134,7 +134,7 @@ private:
 
             case State::APPROACH:
                 // PID compute returns the control output directly
-                twist_cmd.angular.z = bearing_pid_.compute(bearing_goal_ - ball_bearing_, dt);
+                twist_cmd.angular.z = bearing_pid_.compute(image_center_x_ - ball_bearing_, dt);
                 twist_cmd.linear.x = distance_pid_.compute(params_.approach_distance_goal - ball_distance_, dt);
                 
                 if(!ball_found_){
@@ -157,7 +157,7 @@ private:
                 if(!ball_found_){
                     current_state_ = State::SEARCH; //if ball lost, go back to search
                 }
-                if(vec.distance < 0.2) //if close to intermediate point, switch to nav to kick pos
+                else if(vec.distance < 0.2) //if close to intermediate point, switch to nav to kick pos
                     current_state_ = State::NAV_TO_KICK_POS;
                 break;            
             }
@@ -172,7 +172,7 @@ private:
                 if(!ball_found_){
                     current_state_ = State::SEARCH; //if ball lost, go back to search
                 }
-                if(vec.distance < 0.2){ //if close to kick position, switch to line up
+                else if(vec.distance < 0.2){ //if close to kick position, switch to line up
                     current_state_ = State::LINE_UP;
                     break;
                 }
@@ -181,15 +181,15 @@ private:
 
             case State::LINE_UP:
             {
-                twist_cmd.angular.z = bearing_pid_.compute(bearing_goal_ - ball_bearing_, dt); //rotate to line up with ball
+                twist_cmd.angular.z = bearing_pid_.compute(image_center_x_ - ball_bearing_, dt); //rotate to line up with ball
                 twist_cmd.linear.x = 0.0; //dont move forward, just rotate in place
+                bearing_error = std::abs(image_center_x_ - ball_bearing_); //update bearing error to check if well aligned with ball
                 
                 if(!ball_found_){
                     current_state_ = State::SEARCH; //if ball lost, go back to search
                 }
 
-                bearing_error = std::abs(bearing_goal_ - ball_bearing_); //update bearing error to check if well aligned with ball
-                if(bearing_error < 10.0) { //if well aligned with ball, switch to kick
+                else if(bearing_error < 10.0) { //if well aligned with ball, switch to kick
                     twist_cmd.angular.z = 0.0; //stop rotating
                     twist_cmd.linear.x = 0.0; //ensure no forward movement
                     kick_start_time_ = this->now(); //record time when kick starts for timing the kick duration
