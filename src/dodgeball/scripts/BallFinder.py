@@ -54,7 +54,7 @@ class Robot(Node):
         image = self.raw_image.copy() #get image, use a copy to not modify original
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) #convert image to hsv for filtering
 
-        lower_yellow = np.array([20, 100, 100]) #set bounds for yellow color in hsv
+        lower_yellow = np.array([20, 150, 150]) #set bounds for yellow color in hsv
         upper_yellow = np.array([30, 255, 255])
 
         mask = cv2.inRange(hsv, lower_yellow, upper_yellow) #mask (binaryImage, lowBound, upBound), returns binary image where pixels in range are 255 and others are 0
@@ -68,7 +68,7 @@ class Robot(Node):
         ball_location = BallLocation() #ball_location = custom message of type BallLocation
         image_center = width / 2
 
-        if len(yellow_cols) == 0: #if no pixels found, set ball location to invalid values
+        if len(yellow_cols) == 0 or len(yellow_cols) < 50: #check valid range of yellow pixels
             ball_location.bearing = -1
             ball_location.distance = -1.0
             ball_location.found = False       
