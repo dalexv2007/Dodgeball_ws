@@ -174,11 +174,7 @@ private:
                 twist_cmd.linear.x = distance_pid_.compute(vec.distance, dt); //forward speed based on distance to kick pos
                 twist_cmd.angular.z = theta_pid_.compute(theta_error, dt); //angular speed to turn towards kick pos
 
-                if(!ball_found_){
-                    current_state_ = State::SEARCH; //if ball lost, go back to search
-                    RCLCPP_INFO(this->get_logger(), "NAV_TO_KICK_POS -> SEARCH");
-                }
-                else if(vec.distance < 1.0){ //if close to kick position, switch to line up
+                if(vec.distance < 1.0){ //if close to kick position, switch to line up
                     current_state_ = State::LINE_UP;
                     RCLCPP_INFO(this->get_logger(), "NAV_TO_KICK_POS -> LINE_UP");
                 }
@@ -190,13 +186,8 @@ private:
                 twist_cmd.angular.z = bearing_pid_.compute(image_center_x_ - ball_bearing_, dt); //rotate to line up with ball
                 twist_cmd.linear.x = 0.0; //dont move forward, just rotate in place
                 bearing_error = std::abs(image_center_x_ - ball_bearing_); //update bearing error to check if well aligned with ball
-                
-                if(!ball_found_){
-                    current_state_ = State::SEARCH; //if ball lost, go back to search
-                    RCLCPP_INFO(this->get_logger(), "LINE_UP -> SEARCH");
-                }
 
-                else if(bearing_error < 10.0) { //if well aligned with ball, switch to kick
+                if(bearing_error < 10.0) { //if well aligned with ball, switch to kick
                     twist_cmd.angular.z = 0.0; //stop rotating
                     twist_cmd.linear.x = 0.0; //ensure no forward movement
                     kick_start_time_ = this->now(); //record time when kick starts for timing the kick duration
