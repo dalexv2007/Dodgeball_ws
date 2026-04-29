@@ -174,7 +174,6 @@ private:
                 }
                 else if(vec.distance < 0.2){ //if close to kick position, switch to line up
                     current_state_ = State::LINE_UP;
-                    break;
                 }
                 break;
             }
