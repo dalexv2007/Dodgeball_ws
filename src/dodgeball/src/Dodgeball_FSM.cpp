@@ -59,7 +59,7 @@ private:
         double distance_limit = 0.3;         // max m/s
 
         //PID gains for theta
-        double theta_kp = 0.01, theta_ki = 0.0, theta_kd = 0.0;
+        double theta_kp = 0.5, theta_ki = 0.0, theta_kd = 0.0;
         double theta_limit = 1.0; // max rad/s
     } params_;
 
@@ -158,9 +158,10 @@ private:
                 twist_cmd.linear.x = distance_pid_.compute(vec.distance, dt); //forward speed based
                 twist_cmd.angular.z = theta_pid_.compute(theta_error, dt); //angular speed to turn towards intermediate point
             
-                if(vec.distance < 1.0) //if close to intermediate point, switch to nav to kick pos
+                if(vec.distance < 1.0){//if close to intermediate point, switch to nav to kick pos
                     current_state_ = State::NAV_TO_KICK_POS;
                     RCLCPP_INFO(this->get_logger(), "NAV_TO_INTER -> NAV_TO_KICK_POS");
+                }
                 break;            
             }
 
