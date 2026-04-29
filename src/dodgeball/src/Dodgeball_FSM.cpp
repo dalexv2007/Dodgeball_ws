@@ -155,7 +155,7 @@ private:
             {
                 VectorResult vec = get_vector(x_, y_, inter_x_, inter_y_); //get bearing and distance to intermediate point
                 double theta_error = normalize_angle(theta_ - vec.bearing); //compute angle to intermediate point and control output
-                twist_cmd.linear.x = 0.15 //constant forward speed
+                twist_cmd.linear.x = 0.15; //constant forward speed
                 twist_cmd.angular.z = theta_pid_.compute(theta_error, dt); //angular speed to turn towards intermediate point
             
                 if(vec.distance < 0.5){//if close to intermediate point, switch to nav to kick pos
