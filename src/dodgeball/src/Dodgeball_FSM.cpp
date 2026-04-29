@@ -129,6 +129,7 @@ private:
                 if(ball_found_) {
                     twist_cmd.angular.z = 0.0; //stop rotating
                     current_state_ = State::APPROACH; //switch to approach state when ball found
+                    RCLCPP_INFO(this->get_logger(), "SEARCH -> APPROACH");
                 } 
                 break;
 
@@ -139,12 +140,14 @@ private:
                 
                 if(!ball_found_){
                     current_state_ = State::SEARCH; //if ball lost, go back to search
+                    RCLCPP_INFO(this->get_logger(), "APPROACH -> SEARCH");
                 }
                 else if (dist_error < 0.1 && bearing_error < 15.0) { //if within approach distance, switch to kick
                     twist_cmd.linear.x = 0.0; //stop forward movement
                     twist_cmd.angular.z = 0.0; //stop rotation
                     calculate_goals(); //calculate intermediate and kick positions based on current odom
                     current_state_ = State::NAV_TO_INTER; //go to intermediate point to get around ball
+                    RCLCPP_INFO(this->get_logger(), "APPROACH -> NAV_TO_INTER");
                 }
                 break;
 
@@ -156,9 +159,11 @@ private:
                 twist_cmd.angular.z = theta_pid_.compute(theta_error, dt); //angular speed to turn towards intermediate point
                 if(!ball_found_){
                     current_state_ = State::SEARCH; //if ball lost, go back to search
+                    RCLCPP_INFO(this->get_logger(), "NAV_TO_INTER -> SEARCH");
                 }
                 else if(vec.distance < 0.2) //if close to intermediate point, switch to nav to kick pos
                     current_state_ = State::NAV_TO_KICK_POS;
+                    RCLCPP_INFO(this->get_logger(), "NAV_TO_INTER -> NAV_TO_KICK_POS");
                 break;            
             }
 
@@ -171,9 +176,11 @@ private:
 
                 if(!ball_found_){
                     current_state_ = State::SEARCH; //if ball lost, go back to search
+                    RCLCPP_INFO(this->get_logger(), "NAV_TO_KICK_POS -> SEARCH");
                 }
                 else if(vec.distance < 0.2){ //if close to kick position, switch to line up
                     current_state_ = State::LINE_UP;
+                    RCLCPP_INFO(this->get_logger(), "NAV_TO_KICK_POS -> LINE_UP");
                 }
                 break;
             }
@@ -186,6 +193,7 @@ private:
                 
                 if(!ball_found_){
                     current_state_ = State::SEARCH; //if ball lost, go back to search
+                    RCLCPP_INFO(this->get_logger(), "LINE_UP -> SEARCH");
                 }
 
                 else if(bearing_error < 10.0) { //if well aligned with ball, switch to kick
@@ -193,6 +201,7 @@ private:
                     twist_cmd.linear.x = 0.0; //ensure no forward movement
                     kick_start_time_ = this->now(); //record time when kick starts for timing the kick duration
                     current_state_ = State::KICK;
+                    RCLCPP_INFO(this->get_logger(), "LINE_UP -> KICK");
                 }
                 break;
             }
@@ -203,6 +212,7 @@ private:
                 if((this->now() - kick_start_time_).seconds() >= params_.kick_duration_ms / 1000.0) { //after kick duration, go back to search
                     twist_cmd.linear.x = 0.0; //stop movement
                     current_state_ = State::SEARCH;
+                    RCLCPP_INFO(this->get_logger(), "KICK -> SEARCH");
                 }
                 break;
         }
