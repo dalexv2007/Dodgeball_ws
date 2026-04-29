@@ -135,7 +135,7 @@ private:
             case State::APPROACH:
                 // PID compute returns the control output directly
                 twist_cmd.angular.z = bearing_pid_.compute(image_center_x_ - ball_bearing_, dt);
-                twist_cmd.linear.x = distance_pid_.compute(params_.approach_distance_goal - ball_distance_, dt);
+                twist_cmd.linear.x = distance_pid_.compute(ball_distance_ - params_.approach_distance_goal, dt);
                 
                 if(!ball_found_){
                     current_state_ = State::SEARCH; //if ball lost, go back to search
