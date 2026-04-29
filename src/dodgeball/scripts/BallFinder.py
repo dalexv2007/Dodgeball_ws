@@ -7,7 +7,7 @@ from rclpy.qos import qos_profile_sensor_data
 
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, LaserScan
-from robot_puppy.msg import BallLocation
+from dodgeball.msg import BallLocation
 
 
 class Robot(Node):
