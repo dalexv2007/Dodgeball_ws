@@ -14,7 +14,7 @@ public:
         theta_pid_ (params_.theta_kp, params_.theta_ki, params_.theta_kd, params_.theta_limit) 
         {
 
-        cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel_unstamped", 10); //publisher for velocity
+        cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10); //publisher for velocity
 
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/odom",
@@ -143,6 +143,7 @@ private:
                     current_state_ = State::SEARCH; //if ball lost, go back to search
                     RCLCPP_INFO(this->get_logger(), "APPROACH -> SEARCH");
                 }
+
                 else if (dist_error < 0.3 && bearing_error < 20.0) { //if within approach distance, switch to kick
                     twist_cmd.linear.x = 0.0; //stop forward movement
                     twist_cmd.angular.z = 0.0; //stop rotation
