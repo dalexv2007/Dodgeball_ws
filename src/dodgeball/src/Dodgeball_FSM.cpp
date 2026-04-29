@@ -14,7 +14,7 @@ public:
         theta_pid_ (params_.theta_kp, params_.theta_ki, params_.theta_kd, params_.theta_limit) 
         {
 
-        cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10); //publisher for velocity
+        cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10); //publisher for velocity
 
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/odom",
