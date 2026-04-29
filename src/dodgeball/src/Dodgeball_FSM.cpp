@@ -154,7 +154,7 @@ private:
             case State::NAV_TO_INTER:
             {
                 VectorResult vec = get_vector(x_, y_, inter_x_, inter_y_); //get bearing and distance to intermediate point
-                double theta_error = normalize_angle(theta_ - vec.bearing); //compute angle to intermediate point and control output
+                double theta_error = normalize_angle(vec.bearing - theta_); //compute angle to intermediate point and control output
                 twist_cmd.linear.x = 0.15; //constant forward speed
                 twist_cmd.angular.z = theta_pid_.compute(theta_error, dt); //angular speed to turn towards intermediate point
             
@@ -168,7 +168,7 @@ private:
             case State::NAV_TO_KICK_POS:
             {
                 VectorResult vec = get_vector(x_, y_, kick_x_, kick_y_); //get bearing and distance to kick position
-                double theta_error = normalize_angle(theta_ - vec.bearing); //compute angle to kick position and control output
+                double theta_error = normalize_angle(vec.bearing - theta_); //compute angle to kick position and control output
                 twist_cmd.linear.x = 0.15; //constant forward speed
                 twist_cmd.angular.z = theta_pid_.compute(theta_error, dt); //angular speed to turn towards kick pos
 
