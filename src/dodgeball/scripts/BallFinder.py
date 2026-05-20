@@ -17,7 +17,7 @@ class Robot(Node):
         self.raw_image = []
         self.ranges = []
         self.distance_history = []  # Initialize the list
-        self.buffer_size = 5        # Set a buffer size for your moving average
+        self.buffer_size = 5        # Set a buffer size for moving average
 
         self.loc_publisher = self.create_publisher(BallLocation, '/ball_location', 10) #(type, topic, queue)
         self.im_publisher = self.create_publisher(Image, '/ball_image', 10) # publisher for modified image
@@ -65,18 +65,16 @@ class Robot(Node):
         mask[int(0.8*height):, :] = 0 #ignore bottom 20% of image to avoid floor
 
         yellow_cols = np.where(mask == 255)[1] #get column indices of yellow pixels,
-        ball_location = BallLocation() #ball_location = custom message of type BallLocation
+        ball_location = BallLocation() #ball_location = BallLocation object to save data to
         image_center = width / 2
 
-        if len(yellow_cols) == 0 or len(yellow_cols) < 50: #check valid range of yellow pixels
-            ball_location.bearing = -1
+        if len(yellow_cols) == 0 or len(yellow_cols) < 50: #if nothing found:
+            ball_location.bearing = 0.0
             ball_location.distance = -1.0
             ball_location.found = False       
 
-        else: #if pixels found...
-            avg_x = int(np.mean(yellow_cols)) #calculate average column index of yellow pixels... this is the "center" of the ball in the image
-            ball_location.bearing = avg_x
-            center_x = width/2
+        else: #if pixels found... START HERE
+
 
             scan_index = int(223 - (avg_x * 76 / 250))
             scan_index = max(147, min(scan_index, 223))
