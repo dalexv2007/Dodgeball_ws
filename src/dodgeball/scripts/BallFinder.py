@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 import rclpy
 import cv2
 import numpy as np
@@ -52,29 +53,31 @@ class Robot(Node):
             return
 
         image = self.raw_image.copy() #get image, use a copy to not modify original
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) #convert image to hsv for filtering
+        hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) #convert image to hsv for filtering
 
         lower_yellow = np.array([20, 150, 150]) #set bounds for yellow color in hsv
         upper_yellow = np.array([30, 255, 255])
 
-        mask = cv2.inRange(hsv, lower_yellow, upper_yellow) #mask (binaryImage, lowBound, upBound), returns binary image where pixels in range are 255 and others are 0
-        hfov = 80
+        mask = cv2.inRange(hsv_img, lower_yellow, upper_yellow) #mask (binaryImage, lowBound, upBound), returns binary image where pixels in range are 255 and others are 0
+        hfov = 80 #confirmed for turtlebot 4 OAK-D PRO Fixed Focus OV9782. Will confirm upon physical testing
 
         height, width = mask.shape
         mask[0:int(0.2*height), :] = 0 #ignore top 20% of image to avoid ceiling
         mask[int(0.8*height):, :] = 0 #ignore bottom 20% of image to avoid floor
 
         yellow_cols = np.where(mask == 255)[1] #get column indices of yellow pixels,
+        f = (width/2) / math.tan(hfov/2) #focal length = dist from camera image plane in pixels
+        center_x = width/2 #image center 
         ball_location = BallLocation() #ball_location = BallLocation object to save data to
-        image_center = width / 2
 
         if len(yellow_cols) == 0 or len(yellow_cols) < 50: #if nothing found:
-            ball_location.bearing = 0.0
+            ball_location.bearing = 0.0 #set invalid/ default values
             ball_location.distance = -1.0
             ball_location.found = False       
 
         else: #if pixels found... START HERE
-
+            avg_x = int(np.mean(yellow_cols)) #get average column of yellow pixels, approx ball location in pixels
+            ball_location.bearing = 
 
             scan_index = int(223 - (avg_x * 76 / 250))
             scan_index = max(147, min(scan_index, 223))
