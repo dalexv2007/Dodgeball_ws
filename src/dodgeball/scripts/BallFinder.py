@@ -18,7 +18,7 @@ class Robot(Node):
         self.raw_image = []
         self.ranges = []
         self.distance_history = []  # Initialize the list
-        self.buffer_size = 5        # Set a buffer size for moving average
+        self.buffer_size = 5        # Set a buffer size for moving average (may not be necessary, note in C++ rewrite)
 
         self.loc_publisher = self.create_publisher(BallLocation, '/ball_location', 10) #(type, topic, queue)
         self.im_publisher = self.create_publisher(Image, '/ball_image', 10) # publisher for modified image
@@ -59,15 +59,15 @@ class Robot(Node):
         upper_yellow = np.array([30, 255, 255])
 
         mask = cv2.inRange(hsv_img, lower_yellow, upper_yellow) #mask (binaryImage, lowBound, upBound), returns binary image where pixels in range are 255 and others are 0
-        hfov = 80 #confirmed for turtlebot 4 OAK-D PRO Fixed Focus OV9782. Will confirm upon physical testing
+        hfov_deg = 80.0 #confirmed for turtlebot 4 OAK-D PRO Fixed Focus OV9782. Will confirm upon physical testing
 
         height, width = mask.shape
         mask[0:int(0.2*height), :] = 0 #ignore top 20% of image to avoid ceiling
         mask[int(0.8*height):, :] = 0 #ignore bottom 20% of image to avoid floor
 
         yellow_cols = np.where(mask == 255)[1] #get column indices of yellow pixels,
-        f = (width/2) / math.tan(hfov/2) #focal length = dist from camera image plane in pixels
-        center_x = width/2 #image center 
+        focal_length = (width/2) / math.tan(hfov/2) #focal length = dist from camera image plane in pixels
+        image_center_x_px = width/2 #image center in pixels (px)
         ball_location = BallLocation() #ball_location = BallLocation object to save data to
 
         if len(yellow_cols) == 0 or len(yellow_cols) < 50: #if nothing found:
@@ -76,10 +76,10 @@ class Robot(Node):
             ball_location.found = False       
 
         else: #if pixels found... START HERE
-            avg_x = int(np.mean(yellow_cols)) #get average column of yellow pixels, approx ball location in pixels
-            ball_location.bearing = 
+            ball_center_x_px = int(np.mean(yellow_cols)) #get average column of yellow pixels, approx ball location in pixels
+            ball_location.bearing = np.arctan2(ball_center_x_px-image_center_x_px, focal_length) #calculate bearing with triangle using pixel error as opp and focal length as adj.
 
-            scan_index = int(223 - (avg_x * 76 / 250))
+            scan_index = int(223 - (ball_center_x_px * 76 / 250))
             scan_index = max(147, min(scan_index, 223))
 
             distance = self.ranges[scan_index] #store distance for validity check
@@ -92,7 +92,7 @@ class Robot(Node):
                     self.distance_history.pop(0)
                 ball_location.distance = np.mean(self.distance_history) #set distance to average of history for
                 
-            cv2.line(image, (avg_x, 0), (avg_x, height), (255, 0, 0), 2) #draw vertical blue line at avg_x to show ball center
+            cv2.line(image, (ball_center_x_px, 0), (ball_center_x_px, height), (255, 0, 0), 2) #draw vertical blue line at avg_x to show ball center
 
             if ball_location.distance > 0: #if ball close to center, set as found
                 ball_location.found = True

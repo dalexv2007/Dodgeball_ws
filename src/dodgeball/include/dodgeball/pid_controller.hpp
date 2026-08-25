@@ -43,8 +43,11 @@ private:
 *   - output clamped to [-limit_, limit_], check if limit_ is set correctly. Pretty sure it was so the error didnt accumulate to infinity.
 *   Inputs:
 *   - Get image -> process image -> get ball location as (bearing, distance) -> send to PID to compute error
-*   Ayo bearing never gets assigned in BallFinder.py, fix first. 
 *   In Dodgeball_FSM.pp, image processing needs to be reviewed. 
 *   std::abs in control_loop() is BAD, as we need signed errors for PID to work properly.
+*   NOT NECESSARILY: state transition checks are not the same as PID inputs, go through Dodgeball_FSM.cpp and organize PID inputs versus state transition checks.
 *   Later: calculate dt from time stamps rather than hardcoded. 
+*
+*   Solutions:
+*   - BallFinder.py bearing calc fixed, check correct published to ball_location.bearing.
 */

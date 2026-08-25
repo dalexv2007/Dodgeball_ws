@@ -120,8 +120,8 @@ private:
 
     void control_loop() {
         geometry_msgs::msg::Twist twist_cmd; // pub'd twist msg as twist_cmd
-        double dist_error = std::abs(params_.approach_distance_goal - ball_distance_); //calculate distance error for PID
-        double bearing_error = std::abs(image_center_x_ - ball_bearing_); //calculate bearing error for PID
+        double dist_error = params_.approach_distance_goal - ball_distance_; //calculate distance error for PID
+        double bearing_error = image_center_x_ - ball_bearing_; //calculate bearing error for PID
 
         switch (current_state_) { //switch for FSM
             case State::SEARCH: 
@@ -185,7 +185,7 @@ private:
             {
                 twist_cmd.angular.z = bearing_pid_.compute(image_center_x_ - ball_bearing_, dt); //rotate to line up with ball
                 twist_cmd.linear.x = 0.0; //dont move forward, just rotate in place
-                bearing_error = std::abs(image_center_x_ - ball_bearing_); //update bearing error to check if well aligned with ball
+                bearing_error = image_center_x_ - ball_bearing_; //update bearing error to check if well aligned with ball
 
                 if(bearing_error < 10.0) { //if well aligned with ball, switch to kick
                     twist_cmd.angular.z = 0.0; //stop rotating
