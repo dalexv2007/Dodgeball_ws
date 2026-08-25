@@ -60,13 +60,14 @@ class Robot(Node):
 
         mask = cv2.inRange(hsv_img, lower_yellow, upper_yellow) #mask (binaryImage, lowBound, upBound), returns binary image where pixels in range are 255 and others are 0
         hfov_deg = 80.0 #confirmed for turtlebot 4 OAK-D PRO Fixed Focus OV9782. Will confirm upon physical testing
+        hfov_rad = math.radians(hfov_deg) #convert to radians for trig functions
 
         height, width = mask.shape
         mask[0:int(0.2*height), :] = 0 #ignore top 20% of image to avoid ceiling
         mask[int(0.8*height):, :] = 0 #ignore bottom 20% of image to avoid floor
-
         yellow_cols = np.where(mask == 255)[1] #get column indices of yellow pixels,
-        focal_length = (width/2) / math.tan(hfov/2) #focal length = dist from camera image plane in pixels
+
+        focal_length = (width/2) / math.tan(hfov_rad/2) #focal length = dist from camera image plane in pixels
         image_center_x_px = width/2 #image center in pixels (px)
         ball_location = BallLocation() #ball_location = BallLocation object to save data to
 

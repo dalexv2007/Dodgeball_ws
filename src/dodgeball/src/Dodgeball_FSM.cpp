@@ -3,6 +3,7 @@
 #include "dodgeball/msg/ball_location.hpp"
 #include "dodgeball/pid_controller.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include <cmath>
 
 class DodgeballFSMNode : public rclcpp::Node {
 public:
@@ -52,7 +53,7 @@ private:
         int kick_duration_ms = 3000;         // milliseconds - how long to kick
         
         // PID gains for bearing (angular velocity)
-        double bearing_kp = 0.01, bearing_ki = 0.0, bearing_kd = 0.0;
+        double bearing_kp = 1.0, bearing_ki = 0.0, bearing_kd = 0.0;
         double bearing_limit = 1.0;          // max rad/s
         
         // PID gains for distance (linear velocity)
@@ -102,7 +103,6 @@ private:
     double ball_bearing_ = 0.0; // hold targeting data
     double ball_distance_ = 0.0;
     bool ball_found_ = false;
-    double image_center_x_ = 125.0;
     double dt = 0.1; // Assuming control loop runs every 100ms
     double inter_x_ = 0.0, inter_y_ = 0.0;  // world position of intermediate goal
     double kick_x_  = 0.0, kick_y_  = 0.0;  // world position behind the ball
@@ -120,8 +120,8 @@ private:
 
     void control_loop() {
         geometry_msgs::msg::Twist twist_cmd; // pub'd twist msg as twist_cmd
-        double dist_error = params_.approach_distance_goal - ball_distance_; //calculate distance error for PID
-        double bearing_error = image_center_x_ - ball_bearing_; //calculate bearing error for PID
+        double dist_error = ball_distance_ - params_.approach_distance_goal; // distance error in meters; positive means too far away
+        double bearing_error = -ball_bearing_; // bearing is already radians; negative makes a right-side ball command a right turn
 
         switch (current_state_) { //switch for FSM
             case State::SEARCH: 
@@ -136,15 +136,15 @@ private:
 
             case State::APPROACH:
                 // PID compute returns the control output directly
-                twist_cmd.angular.z = bearing_pid_.compute(image_center_x_ - ball_bearing_, dt);
-                twist_cmd.linear.x = distance_pid_.compute(ball_distance_ - params_.approach_distance_goal, dt);
+                twist_cmd.angular.z = bearing_pid_.compute(bearing_error, dt);
+                twist_cmd.linear.x = distance_pid_.compute(dist_error, dt);
                 
                 if(!ball_found_){
                     current_state_ = State::SEARCH; //if ball lost, go back to search
                     RCLCPP_INFO(this->get_logger(), "APPROACH -> SEARCH");
                 }
 
-                else if (dist_error < 0.3 && bearing_error < 20.0) { //if within approach distance, switch to kick
+                else if (std::abs(dist_error) < 0.3 && std::abs(bearing_error) < 20.0 * M_PI / 180.0) { //if within approach distance and bearing tolerance, switch to navigation
                     twist_cmd.linear.x = 0.0; //stop forward movement
                     twist_cmd.angular.z = 0.0; //stop rotation
                     calculate_goals(); //calculate intermediate and kick positions based on current odom
@@ -183,11 +183,10 @@ private:
 
             case State::LINE_UP:
             {
-                twist_cmd.angular.z = bearing_pid_.compute(image_center_x_ - ball_bearing_, dt); //rotate to line up with ball
+                twist_cmd.angular.z = bearing_pid_.compute(bearing_error, dt); //rotate to line up with ball
                 twist_cmd.linear.x = 0.0; //dont move forward, just rotate in place
-                bearing_error = image_center_x_ - ball_bearing_; //update bearing error to check if well aligned with ball
 
-                if(bearing_error < 10.0) { //if well aligned with ball, switch to kick
+                if(std::abs(bearing_error) < 10.0 * M_PI / 180.0) { //if well aligned with ball, switch to kick
                     twist_cmd.angular.z = 0.0; //stop rotating
                     twist_cmd.linear.x = 0.0; //ensure no forward movement
                     kick_start_time_ = this->now(); //record time when kick starts for timing the kick duration
